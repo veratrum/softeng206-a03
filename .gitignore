@@ -1,2 +1,7 @@
 /bin/
+<<<<<<< HEAD
 /.metadata/
+=======
+
+/userdata/metadata.xml
+>>>>>>> 9cf5e70dd7fa20aeb8e6e65f83b30b9288618851
