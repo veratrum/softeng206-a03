@@ -94,12 +94,12 @@ public class SampleController implements Initializable {
 					
 					
 					// linux version
-					/*ProcessBuilder arecordProcessBuilder = new ProcessBuilder("bash", "-c",
-							"arecord -d 5 userdata" + File.separator + name + ".wav");*/
+					ProcessBuilder arecordProcessBuilder = new ProcessBuilder("bash", "-c",
+							"arecord -d 5 userdata" + File.separator + name + ".wav");
 					// windows version
-					ProcessBuilder arecordProcessBuilder = new ProcessBuilder("cmd", "/c",
+					/*ProcessBuilder arecordProcessBuilder = new ProcessBuilder("cmd", "/c",
 							"ffmpeg -y -t 5 -f dshow -i audio=\"Microphone (Realtek High Definition Audio)\" userdata"
-							+ File.separator + name + ".wav");
+							+ File.separator + name + ".wav");*/
 					
 					
 					
