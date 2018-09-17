@@ -1,6 +1,8 @@
 package application;
 
+import java.io.File;
 import java.net.URL;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 
@@ -8,6 +10,14 @@ import javafx.scene.media.Media;
 
 
 import java.io.File;
+
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.DataLine;
+import javax.sound.sampled.TargetDataLine;
+import javax.swing.SwingWorker;
+
+import javafx.application.Platform;
+
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -15,6 +25,9 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.media.MediaPlayer;
@@ -84,7 +97,61 @@ public class SampleController implements Initializable {
 	}
 
 	public void handleNewRecording(){
+		// dialog code modified from https://code.makery.ch/blog/javafx-dialogs-official/
+		Alert alert = new Alert(AlertType.CONFIRMATION);
+		alert.setTitle("Create a new Recording");
+		alert.setHeaderText("Create a new Recording for Creation " + selectedCreationName);
+		alert.setContentText("Press OK to start recording for 5 seconds.");
+		
+		Creation selectedCreationAtInstant = creations.getCreationByName(selectedCreationName);
+		String name = selectedCreationName + System.currentTimeMillis();
 
+		Optional<ButtonType> result = alert.showAndWait();
+		if (result.get() == ButtonType.OK) {
+			SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+				@Override
+				protected Void doInBackground() throws Exception {
+					
+					
+					// linux version
+					/*ProcessBuilder arecordProcessBuilder = new ProcessBuilder("bash", "-c",
+							"arecord -d 5 userdata" + File.separator + name + ".wav");*/
+					// windows version
+					ProcessBuilder arecordProcessBuilder = new ProcessBuilder("cmd", "/c",
+							"ffmpeg -y -t 5 -f dshow -i audio=\"Microphone (Realtek High Definition Audio)\" userdata"
+							+ File.separator + name + ".wav");
+					
+					
+					
+					Process arecordProcess = arecordProcessBuilder.start();
+					
+					arecordProcess.waitFor();
+					
+					return null;
+				}
+				
+				@Override
+				protected void done() {
+					selectedCreationAtInstant.addRecording(new Recording(new File(
+							"userdata" + File.separator + name + ".wav")));
+					creations.saveState();
+					
+					// must update ui from 'edt' of javafx
+					Platform.runLater(new Runnable() {
+
+						@Override
+						public void run() {
+							updateRecordingList();
+						}
+						
+					});
+				}
+			};
+			
+			worker.execute();
+		} else {
+			
+		}
 	}
 
 	public void handleNewCreation(){
@@ -99,6 +166,8 @@ public class SampleController implements Initializable {
 		creationList.setItems(creationDataList);
 
 		creationList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+		
+		selectedCreations = FXCollections.emptyObservableList();
 
 		// the first listener detects the last selected creation and shows its recordings in the second list
 		creationList.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Creation>() {
@@ -127,7 +196,7 @@ public class SampleController implements Initializable {
 	}
 
 	/**
-	 * Updates the list of recordings to only show those from the currently selected creation.
+	 * Updates the list of recordings to only show those from the currently selected creations.
 	 */
 	private void updateRecordingList() {
 		// this can only trigger if there are no creations stored in the application
