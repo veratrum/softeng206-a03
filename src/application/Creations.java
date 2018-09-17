@@ -35,6 +35,10 @@ public class Creations {
 		sortCreations();
 	}
 	
+	public void saveState() {
+		creationLoader.saveMetadata();
+	}
+	
 	public List<Creation> getCreations() {
 		return creations;
 	}
