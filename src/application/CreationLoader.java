@@ -65,14 +65,10 @@ public class CreationLoader {
 					Element creationElement = (Element) creationNode;
 					
 					String creationName = creationElement.getAttribute("name");
-
-					String bestString = creationElement.getAttribute("best");
-					int best = Integer.parseInt(bestString);
 					
 					NodeList recordingNodes = creationElement.getElementsByTagName("recording");
 					
 					Creation creation = new Creation(creationName);
-					creation.setBestRecordingIndex(best);
 					
 					for (int j = 0;j < recordingNodes.getLength(); j++) {
 						Node recordingNode = recordingNodes.item(j);
@@ -139,7 +135,6 @@ public class CreationLoader {
 						// otherwise, set up a new recording
 						Creation newCreation = new Creation(properName);
 						Recording newRecording = new Recording(wav);
-						newCreation.setBestRecordingIndex(0);
 						newCreation.addRecording(newRecording);
 						
 						creations.addCreationWithoutSaving(newCreation);
@@ -173,10 +168,6 @@ public class CreationLoader {
 				Attr nameAttr = document.createAttribute("name");
 				nameAttr.setValue(creation.getName());
 				creationElement.setAttributeNode(nameAttr);
-				
-				Attr bestAttr = document.createAttribute("best");
-				bestAttr.setValue(creation.getBestRecordingIndex() + "");
-				creationElement.setAttributeNode(bestAttr);
 				
 				for (int i = 0; i < creation.getRecordings().size(); i++) {
 					Recording recording = creation.getRecordings().get(i);
