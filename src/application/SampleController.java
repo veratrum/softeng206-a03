@@ -46,6 +46,9 @@ public class SampleController implements Initializable {
 		}
 		
 		//Finish this one
+		
+		
+		
 	}
 
 	public void handleRate(){
