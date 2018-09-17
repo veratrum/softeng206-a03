@@ -5,12 +5,19 @@ import java.net.URL;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
+
+import javafx.scene.media.Media;
+
+
+import java.io.File;
+
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.TargetDataLine;
 import javax.swing.SwingWorker;
 
 import javafx.application.Platform;
+
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -23,6 +30,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.media.MediaPlayer;
 
 public class SampleController implements Initializable {
 
@@ -52,12 +60,24 @@ public class SampleController implements Initializable {
 			return;
 		} else if (selectedCreations.size() == 1) {
 			// play one creation
+
+			//Recording to play
+			if (selectedRecording != null) {
+				File recordingToPlay = selectedRecording.getFile();
+				Media creationMedia = new Media(recordingToPlay.toURI().toString());
+				MediaPlayer mediaPlayer = new MediaPlayer(creationMedia);
+				mediaPlayer.play();
+			}
+
 		} else {
 			// ask the user if they want to randomise the order
 			// then play all selected creations
 		}
-		
+
 		//Finish this one
+
+
+
 	}
 
 	public void handleRate(){
@@ -133,7 +153,7 @@ public class SampleController implements Initializable {
 			
 		}
 	}
-	
+
 	public void handleNewCreation(){
 
 	}
@@ -188,7 +208,7 @@ public class SampleController implements Initializable {
 
 		recordingDataList = FXCollections.observableArrayList(selectedCreation.getRecordings());
 		recordingList.setItems(recordingDataList);
-		
+
 		// detects the last selected recording
 		recordingList.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Recording>() {
 			@Override
