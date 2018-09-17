@@ -27,4 +27,9 @@ public class Recording {
 	public File getFile() {
 		return file;
 	}
+	
+	@Override
+	public String toString() {
+		return file.getName();
+	}
 }

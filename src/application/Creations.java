@@ -1,9 +1,9 @@
 package application;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-
-import javax.swing.SwingWorker;
 
 public class Creations {
 
@@ -20,6 +20,8 @@ public class Creations {
 	public void addCreation(Creation creation) {
 		this.creations.add(creation);
 		
+		sortCreations();
+		
 		creationLoader.saveMetadata();
 	}
 	
@@ -29,6 +31,8 @@ public class Creations {
 	 */
 	public void addCreationWithoutSaving(Creation creation) {
 		this.creations.add(creation);
+		
+		sortCreations();
 	}
 	
 	public List<Creation> getCreations() {
@@ -53,5 +57,18 @@ public class Creations {
 		}
 		
 		return null;
+	}
+	
+	/**
+	 * Sorts all creations in alphabetical order.
+	 */
+	private void sortCreations() {
+		// adapted from https://stackoverflow.com/a/2784576
+		Collections.sort(creations, new Comparator<Creation>() {
+			@Override
+			public int compare(Creation a, Creation b) {
+				return a.getName().compareTo(b.getName());
+			}
+		});
 	}
 }

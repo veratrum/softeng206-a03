@@ -1,6 +1,5 @@
 package application;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,5 +41,10 @@ public class Creation {
 	
 	public List<Recording> getRecordings() {
 		return recordings;
+	}
+	
+	@Override
+	public String toString() {
+		return name;
 	}
 }

@@ -105,7 +105,8 @@ public class CreationLoader {
 
 	/**
 	 * This is only run the first time the application is run, and there is no metadata.xml.
-	 * Sets up a creation with one recording for every .wav in the userdata folder.
+	 * Sets up a creation with a recording for every .wav in the userdata folder.
+	 * .wavs of duplicate names are merged into the same creation.
 	 * 
 	 * An example filename is:
 	 * se206_2-5-2018_15-23-50_Mason.wav
