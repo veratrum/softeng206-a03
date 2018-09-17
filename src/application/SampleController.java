@@ -26,6 +26,7 @@ public class SampleController implements Initializable {
 	private ObservableList<Recording> recordingDataList;
 
 	private String selectedCreationName;
+	private Recording selectedRecording;
 
 	public void handleCreateRecording(){
 
@@ -120,6 +121,14 @@ public class SampleController implements Initializable {
 
 		recordingDataList = FXCollections.observableArrayList(selectedCreation.getRecordings());
 		recordingList.setItems(recordingDataList);
+		
+		// detects the last selected recording
+		recordingList.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Recording>() {
+			@Override
+			public void changed(ObservableValue<? extends Recording> observable, Recording oldValue, Recording newValue) {
+				selectedRecording = newValue;
+			}
+		});
 	}
 }
 

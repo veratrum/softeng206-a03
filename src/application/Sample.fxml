@@ -21,5 +21,4 @@
       <Button layoutX="273.0" layoutY="289.0" mnemonicParsing="false" text="New Creation" onAction="#handleNewCreation"/>
       <Button layoutX="289.0" layoutY="323.0" mnemonicParsing="false" text="New Recording" onAction="#handleNewRecording"/>
    </children>
-   </children>
 </Pane>
