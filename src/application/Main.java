@@ -12,7 +12,7 @@ public class Main extends Application {
 	public void start(Stage primaryStage) {
 		try {
 			Parent root = FXMLLoader.load(getClass().getResource("Sample.fxml"));
-			Scene scene = new Scene(root,600,400);
+			Scene scene = new Scene(root,800,650);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			primaryStage.setTitle("Namesayer 3.0");
 			primaryStage.setScene(scene);

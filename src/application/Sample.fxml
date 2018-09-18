@@ -4,21 +4,25 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.SampleController">
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="650.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.SampleController">
    <children>
-      <ListView fx:id="creationList" layoutX="14.0" layoutY="34.0" prefHeight="302.0" prefWidth="231.0" />
-      <ListView fx:id="recordingList" layoutX="266.0" layoutY="37.0" prefHeight="296.0" prefWidth="231.0" />
-      <Label layoutX="14.0" layoutY="14.0" text="List of Creations" />
-      <Label layoutX="266.0" layoutY="14.0" text="Recordings for Selected Creation(s)" />
-      <Button fx:id="Play" layoutX="130.0" layoutY="361.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="68.0" text="Play"  onAction="#handlePlayRecording"/>
-      <Button fx:id="Delete" layoutX="211.0" layoutY="361.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="68.0" text="Delete" onAction="#handleDeleteRecording"/>
-      <Button fx:id="Create" layoutX="292.0" layoutY="361.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="68.0" text="Create" onAction="#handleCreateRecording"/>
-      <Button fx:id="Rate" layoutX="373.0" layoutY="361.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="68.0" text="Rate" onAction="#handleRate"/>
-      <Button layoutX="133.0" layoutY="323.0" mnemonicParsing="false" text="Play" onAction="#handlePlayCreations"/>
-      <Button layoutX="214.0" layoutY="323.0" mnemonicParsing="false" text="Delete" onAction="#handleDeleteCreations"/>
-      <Button layoutX="130.0" layoutY="289.0" mnemonicParsing="false" text="Play Selected" onAction="#handlePlaySelectedCreations"/>
-      <Button layoutX="273.0" layoutY="289.0" mnemonicParsing="false" text="New Creation" onAction="#handleNewCreation"/>
-      <Button layoutX="289.0" layoutY="323.0" mnemonicParsing="false" text="New Recording" onAction="#handleNewRecording"/>
+      <ListView fx:id="creationList" layoutX="14.0" layoutY="34.0" prefHeight="372.0" prefWidth="372.0" />
+      <ListView fx:id="recordingList" layoutX="400.0" layoutY="34.0" prefHeight="372.0" prefWidth="372.0" />
+      <Label layoutX="137.0" layoutY="14.0" text="List of Creations" />
+      <Label layoutX="470.0" layoutY="14.0" text="Recordings for Selected Creation(s)" />
+      <Button fx:id="Play" layoutX="366.0" layoutY="516.0" mnemonicParsing="false" onAction="#handlePlayRecording" prefHeight="25.0" prefWidth="68.0" text="Play" />
+      <Button fx:id="DeleteARecording" layoutX="471.0" layoutY="551.0" mnemonicParsing="false" onAction="#handleDeleteRecording" prefHeight="25.0" prefWidth="231.0" text="Delete A Recording" />
+      <Button fx:id="Create" layoutX="366.0" layoutY="479.0" mnemonicParsing="false" onAction="#handleCreateRecording" prefHeight="25.0" prefWidth="68.0" text="Create" />
+      <Button fx:id="RateARecording" layoutX="471.0" layoutY="516.0" mnemonicParsing="false" onAction="#handleRate" prefHeight="25.0" prefWidth="231.0" text="Rate a Recording" />
+      <Button fx:id="PlayAllRecordingsForCreation" layoutX="71.0" layoutY="516.0" mnemonicParsing="false" onAction="#handlePlayCreations" prefHeight="25.0" prefWidth="239.0" text="Play All Recordings for Creation" />
+      <Button fx:id="DeleteAllRecordingsForCreation" layoutX="71.0" layoutY="479.0" mnemonicParsing="false" onAction="#handleDeleteCreations" text="Delete All Recordings for Creation" />
+      <Button fx:id="PlaySelectedRecording" layoutX="471.0" layoutY="443.0" mnemonicParsing="false" onAction="#handlePlaySelectedCreations" prefHeight="25.0" prefWidth="231.0" text="Play Selected Recording" />
+      <Button fx:id="CreateNewCreation" layoutX="72.0" layoutY="443.0" mnemonicParsing="false" onAction="#handleNewCreation" prefHeight="25.0" prefWidth="239.0" text="Create New Creation" />
+      <Button fx:id="CreateNewRecording" layoutX="470.0" layoutY="479.0" mnemonicParsing="false" onAction="#handleNewRecording" prefHeight="25.0" prefWidth="231.0" text="Create A New Recording" />
+      <Label layoutX="129.0" layoutY="420.0" text="Creations Manager" />
+      <Label layoutX="525.0" layoutY="420.0" text="Recordings Manager" />
+      <Label layoutX="300.0" layoutY="569.0" text="Microphone Input Level" />
+      <ProgressBar fx:id="progressBar" layoutX="276.0" layoutY="584.0" prefWidth="200.0" progress="0.0" />
+      <Button layoutX="313.0" layoutY="611.0" mnemonicParsing="false" text="Test Microphone" onAction="#handleTestMicrophone"/>
    </children>
 </Pane>
