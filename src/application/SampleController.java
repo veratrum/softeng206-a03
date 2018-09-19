@@ -328,7 +328,7 @@ public class SampleController implements Initializable {
 		alert1.setContentText("Press OK to start recording for 5 seconds.");
 
 		Creation selectedCreationAtInstant = selectedCreation;
-		String name = selectedCreation.getName() + "-" + System.currentTimeMillis();
+		String filename = selectedCreation.generateRecordingFilename();
 
 		Optional<ButtonType> result = alert1.showAndWait();
 		if (result.get() == ButtonType.OK) {
@@ -349,13 +349,8 @@ public class SampleController implements Initializable {
 
 					// linux version
 					ProcessBuilder arecordProcessBuilder = new ProcessBuilder("bash", "-c",
-							"arecord -d 5 userdata" + File.separator + name + ".wav");
-					// windows version
-					/*ProcessBuilder arecordProcessBuilder = new ProcessBuilder("cmd", "/c",
-							"ffmpeg -y -t 5 -f dshow -i audio=\"Microphone (Realtek High Definition Audio)\" userdata"
-									+ File.separator + name + ".wav");*/
-
-
+							"arecord -d 5 userdata" + File.separator + filename);
+				
 					Process arecordProcess = arecordProcessBuilder.start();
 
 					arecordProcess.waitFor();
@@ -366,7 +361,7 @@ public class SampleController implements Initializable {
 				@Override
 				protected void done() {
 					selectedCreationAtInstant.addRecording(new Recording(selectedCreationAtInstant, new File(
-							"userdata" + File.separator + name + ".wav")));
+							"userdata" + File.separator + filename)));
 					creations.saveState();
 
 					// must update ui from 'edt' of javafx
