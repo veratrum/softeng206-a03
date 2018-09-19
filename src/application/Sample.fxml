@@ -16,7 +16,7 @@
       <Button fx:id="RateARecording" layoutX="471.0" layoutY="516.0" mnemonicParsing="false" onAction="#handleRate" prefHeight="25.0" prefWidth="231.0" text="Rate a Recording" />
       <Button fx:id="PlayAllRecordingsForCreation" layoutX="71.0" layoutY="516.0" mnemonicParsing="false" onAction="#handlePlayCreations" prefHeight="25.0" prefWidth="239.0" text="Play All Recordings for Creation" />
       <Button fx:id="DeleteAllRecordingsForCreation" layoutX="71.0" layoutY="479.0" mnemonicParsing="false" onAction="#handleDeleteCreations" text="Delete All Recordings for Creation" />
-      <Button fx:id="PlaySelectedRecording" layoutX="471.0" layoutY="443.0" mnemonicParsing="false" onAction="#handlePlaySelectedCreations" prefHeight="25.0" prefWidth="231.0" text="Play Selected Recording" />
+      <Button fx:id="PlaySelectedRecordings" layoutX="471.0" layoutY="443.0" mnemonicParsing="false" onAction="#handlePlaySelectedRecordings" prefHeight="25.0" prefWidth="231.0" text="Play Selected Recording(s)" />
       <Button fx:id="CreateNewCreation" layoutX="72.0" layoutY="443.0" mnemonicParsing="false" onAction="#handleNewCreation" prefHeight="25.0" prefWidth="239.0" text="Create New Creation" />
       <Button fx:id="CreateNewRecording" layoutX="470.0" layoutY="479.0" mnemonicParsing="false" onAction="#handleNewRecording" prefHeight="25.0" prefWidth="231.0" text="Create A New Recording" />
       <Label layoutX="129.0" layoutY="420.0" text="Creations Manager" />

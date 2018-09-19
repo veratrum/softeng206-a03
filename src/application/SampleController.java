@@ -6,7 +6,7 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 
 import javafx.concurrent.Task;
-
+import javafx.scene.media.AudioClip;
 import javafx.scene.media.Media;
 
 
@@ -14,6 +14,7 @@ import java.io.File;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.TargetDataLine;
@@ -52,8 +53,6 @@ public class SampleController implements Initializable {
 	private String selectedCreationName;
 	private Recording selectedRecording;
 
-
-	// REMEBER TO CHECK IF I NEED THIS IN HERE
 	@FXML
 	ProgressBar progressBar;
 	
@@ -67,6 +66,18 @@ public class SampleController implements Initializable {
 
 		return new AudioFormat(sampleRate,sampleSizeInBits,channels,signed,bigEndian);
 	}
+	
+	public void PlayAudio() {
+		File recordingToPlay = selectedRecording.getFile();
+		Clip clip;
+		try {
+			clip = AudioSystem.getClip();
+			clip.open(AudioSystem.getAudioInputStream(recordingToPlay));
+			clip.start();
+		} catch (Exception e) {
+			
+		}
+	}
 
 	public void handleCreateRecording(){
 
@@ -76,7 +87,7 @@ public class SampleController implements Initializable {
 
 	}
 
-	public void handlePlayRecording(){
+	public void handlePlaySelectedRecordings(){
 		if (selectedCreations.size() == 0) {
 			return;
 		} else if (selectedCreations.size() == 1) {
@@ -84,15 +95,14 @@ public class SampleController implements Initializable {
 
 			//Recording to play
 			if (selectedRecording != null) {
-				File recordingToPlay = selectedRecording.getFile();
-				Media creationMedia = new Media(recordingToPlay.toURI().toString());
-				MediaPlayer mediaPlayer = new MediaPlayer(creationMedia);
-				mediaPlayer.play();
+				PlayAudio();
 			}
 
 		} else {
 			// ask the user if they want to randomise the order
 			// then play all selected creations
+			
+			
 		}
 
 		//Finish this one
@@ -170,11 +180,15 @@ public class SampleController implements Initializable {
 		
 	}
 
-	public void handlePlayCreations(){
-
+	public void handlePlayRecording() {
+		
 	}
 
 	public void handleDeleteCreations(){
+
+	}
+	
+	public void handlePlayCreations(){
 
 	}
 
