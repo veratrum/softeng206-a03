@@ -92,11 +92,10 @@ public class SampleController implements Initializable {
 
 		Optional<ButtonType> result = alert.showAndWait();
 		if (result.get() == ButtonType.OK) {
-			SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+			Thread deleteRecordings = new Thread(new Task<Void>() {
 
 				@Override
-				protected Void doInBackground() throws Exception {
-					//for (Recording recording: selectedRecordings) {
+				protected Void call() throws Exception {
 					for (Recording recording: selectedRecordings) {
 						recording.delete();
 					}
@@ -117,9 +116,8 @@ public class SampleController implements Initializable {
 					});
 				}
 
-			};
-
-			worker.execute();
+			});
+			deleteRecordings.start();
 		}
 	}
 
@@ -268,47 +266,46 @@ public class SampleController implements Initializable {
 
 	}
 
-	public void handlePlayRecording() {
-
-	}
-
 	public void handleDeleteCreations(){
 		// dialog code modified from https://code.makery.ch/blog/javafx-dialogs-official/
 		Alert alert = new Alert(AlertType.CONFIRMATION);
-		alert.setTitle("Delete selected Creations");
+		alert.setTitle("Delete selected Names");
 		alert.setHeaderText(null);
-		alert.setContentText("Are you sure you want to delete " + selectedCreations.size() + " Creations, "
+		alert.setContentText("Are you sure you want to delete " + selectedCreations.size() + " Names, "
 				+ "as well as their Recordings?");
 
 		Optional<ButtonType> result = alert.showAndWait();
 		if (result.get() == ButtonType.OK) {
-			SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+			Thread deleteCreation = new Thread(new Task<Void>() {
 
 				@Override
-				protected Void doInBackground() throws Exception {
+				protected Void call() throws Exception {
 					for (Creation creation: selectedCreations) {
 						creations.deleteCreation(creation);
 
 						creation.delete();
 
-						// must update ui from 'edt' of javafx
-						Platform.runLater(new Runnable() {
-							@Override
-							public void run() {
-								updateCreationList();
-								creationList.getSelectionModel().clearSelection();
-								creationList.getSelectionModel().selectFirst();
-								updateRecordingList();
-							}
-						});
 					}
-
+					
 					return null;
 				}
+				
+				@Override
+				protected void done() {
+					// must update ui from 'edt' of javafx
+					Platform.runLater(new Runnable() {
+						@Override
+						public void run() {
+							updateCreationList();
+							creationList.getSelectionModel().clearSelection();
+							creationList.getSelectionModel().selectFirst();
+							updateRecordingList();
+						}
+					});
+				}
 
-			};
-
-			worker.execute();
+			});
+			deleteCreation.start();
 		}
 	}
 
@@ -324,7 +321,7 @@ public class SampleController implements Initializable {
 		// dialog code modified from https://code.makery.ch/blog/javafx-dialogs-official/
 		Alert alert1 = new Alert(AlertType.CONFIRMATION);
 		alert1.setTitle("Create a new Recording");
-		alert1.setHeaderText("Create a new Recording for Creation " + selectedCreation.getName());
+		alert1.setHeaderText("Create a new Recording for Name " + selectedCreation.getName());
 		alert1.setContentText("Press OK to start recording for 5 seconds.");
 
 		Creation selectedCreationAtInstant = selectedCreation;
@@ -349,20 +346,6 @@ public class SampleController implements Initializable {
 				protected Void call() throws Exception {
 					Thread.sleep(5000);
 					isRecording = false;
-					
-					selectedCreationAtInstant.addRecording(new Recording(selectedCreationAtInstant, new File(
-							"userdata" + File.separator + filename)));
-					creations.saveState();
-
-					// must update ui from 'edt' of javafx
-					Platform.runLater(new Runnable() {
-						@Override
-						public void run() {
-							alert2.close();
-
-							updateRecordingList();
-						}
-					});
 					
 					return null;
 				}
@@ -409,6 +392,23 @@ public class SampleController implements Initializable {
 
 					return null;
 				}
+				
+				@Override
+				protected void done() {
+					selectedCreationAtInstant.addRecording(new Recording(selectedCreationAtInstant, new File(
+							"userdata" + File.separator + filename)));
+					creations.saveState();
+
+					// must update ui from 'edt' of javafx
+					Platform.runLater(new Runnable() {
+						@Override
+						public void run() {
+							alert2.close();
+
+							updateRecordingList();
+						}
+					});
+				}
 			});
 			recordAudio.start();
 		}
@@ -417,7 +417,14 @@ public class SampleController implements Initializable {
 	public void handleNewCreation(){
 		TextInputDialog dialog = new TextInputDialog("");
 		
+		dialog.setTitle("Make a new Name");
+		dialog.setHeaderText(null);
+		dialog.setContentText("Enter a name:");
 		
+		Optional<String> result = dialog.showAndWait();
+		if (result.isPresent()) {
+		    System.out.println("Your name: " + result.get());
+		}
 	}
 
 	@Override
