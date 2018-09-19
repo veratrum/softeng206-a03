@@ -1,6 +1,8 @@
 package application;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +31,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 
@@ -47,7 +50,8 @@ public class SampleController implements Initializable {
 	private Recording selectedRecording;
 	private ObservableList<Creation> selectedCreations;
 	private ObservableList<Recording> selectedRecordings;
-
+	
+	private boolean isRecording;
 
 	// REMEBER TO CHECK IF I NEED THIS IN HERE
 	@FXML
@@ -276,30 +280,15 @@ public class SampleController implements Initializable {
 			alert2OK.setDisable(true);
 			
 			alert2.show();
-			
-			SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+
+			// stop recording after 5 seconds
+			isRecording = true;
+			Thread wait5Seconds = new Thread(new Task<Void>() {
 				@Override
-				protected Void doInBackground() throws Exception {
-
-
-					// linux version
-					ProcessBuilder arecordProcessBuilder = new ProcessBuilder("bash", "-c",
-							"arecord -d 5 userdata" + File.separator + filename);
-					// windows version
-					/*ProcessBuilder arecordProcessBuilder = new ProcessBuilder("cmd", "/c",
-							"ffmpeg -y -t 5 -f dshow -i audio=\"Microphone (Realtek High Definition Audio)\" userdata"
-									+ File.separator + filename);*/
+				protected Void call() throws Exception {
+					Thread.sleep(5000);
+					isRecording = false;
 					
-					
-					Process arecordProcess = arecordProcessBuilder.start();
-
-					arecordProcess.waitFor();
-
-					return null;
-				}
-
-				@Override
-				protected void done() {
 					selectedCreationAtInstant.addRecording(new Recording(selectedCreationAtInstant, new File(
 							"userdata" + File.separator + filename)));
 					creations.saveState();
@@ -313,15 +302,59 @@ public class SampleController implements Initializable {
 							updateRecordingList();
 						}
 					});
+					
+					return null;
 				}
-			};
+			});
+			wait5Seconds.start();
+			
+			// this thread runs concurrently to wait5Seconds, and stops when 5 seconds have passed
+			Thread recordAudio = new Thread(new Task<Void>() {
+				@Override
+				protected Void call() throws Exception {
+					AudioFormat audioFormat = getAudioFormat();
 
-			worker.execute();
+					// modified from https://docs.oracle.com/javase/tutorial/sound/capturing.html
+					TargetDataLine targetDataLine;
+					try {
+						targetDataLine = (TargetDataLine) AudioSystem.getTargetDataLine(audioFormat);
+
+						targetDataLine.open();
+						
+						ByteArrayOutputStream out = new ByteArrayOutputStream();
+						int numBytesRead;
+						byte[] data = new byte[targetDataLine.getBufferSize() / 5];
+						
+						targetDataLine.start();
+						
+						while (isRecording) {
+							numBytesRead = targetDataLine.read(data, 0, data.length);
+							
+							out.write(data, 0, numBytesRead);
+						}
+						
+						targetDataLine.close();
+						
+						// write the output to a file
+						FileOutputStream fileStream = new FileOutputStream("userdata" + File.separator + filename);
+						
+						out.writeTo(fileStream);
+						
+						out.close();
+						fileStream.close();
+					} catch (LineUnavailableException e) {
+						e.printStackTrace();
+					}
+
+					return null;
+				}
+			});
+			recordAudio.start();
 		}
 	}
 
 	public void handleNewCreation(){
-
+		TextInputDialog dialog = new TextInputDialog("walter");
 	}
 
 	@Override
@@ -342,6 +375,7 @@ public class SampleController implements Initializable {
 				selectedCreation = newValue;
 				updateRecordingList();
 				
+				recordingList.getSelectionModel().clearSelection();
 				recordingList.getSelectionModel().selectFirst();
 			}
 		});
