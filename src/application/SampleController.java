@@ -83,15 +83,6 @@ public class SampleController implements Initializable {
 		}
 	}
 
-
-
-
-
-
-	public void handleCreateRecording(){
-
-	}
-
 	public void handleDeleteRecording(){
 		// dialog code modified from https://code.makery.ch/blog/javafx-dialogs-official/
 		Alert alert = new Alert(AlertType.CONFIRMATION);
@@ -182,6 +173,7 @@ public class SampleController implements Initializable {
 						File recordingToPlay = currentRecording.getFile();
 						PlayAudio(recordingToPlay);
 					}
+					return null;
 
 				}
 			};
@@ -423,7 +415,9 @@ public class SampleController implements Initializable {
 	}
 
 	public void handleNewCreation(){
-		TextInputDialog dialog = new TextInputDialog("walter");
+		TextInputDialog dialog = new TextInputDialog("");
+		
+		
 	}
 
 	@Override
