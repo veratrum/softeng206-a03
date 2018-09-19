@@ -5,6 +5,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
 public class Creations {
 
 	private List<Creation> creations;
@@ -33,6 +36,14 @@ public class Creations {
 		this.creations.add(creation);
 		
 		sortCreations();
+	}
+	
+	public void deleteCreation(Creation creation) {
+		creations.remove(creation);
+		
+		sortCreations();
+		
+		creationLoader.saveMetadata();
 	}
 	
 	public void saveState() {

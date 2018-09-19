@@ -4,16 +4,23 @@ import java.io.File;
 
 public class Recording {
 
+	private Creation creation;
 	private File file;
 	private boolean isBad;
 	
-	public Recording(File file) {
-		this(file, false);
+	public Recording(Creation creation, File file) {
+		this(creation, file, false);
 	}
 	
-	public Recording(File file, boolean isBad) {
+	public Recording(Creation creation, File file, boolean isBad) {
+		this.creation = creation;
 		this.file = file;
 		this.isBad = isBad;
+	}
+	
+	public void delete() {
+		file.delete();
+		creation.removeRecording(this);
 	}
 	
 	public void setBad(boolean isBad) {
@@ -30,6 +37,12 @@ public class Recording {
 	
 	@Override
 	public String toString() {
-		return file.getName();
+		String representation = file.getName();
+		
+		if (isBad) {
+			representation = "[BAD] " + representation;
+		}
+		
+		return representation;
 	}
 }

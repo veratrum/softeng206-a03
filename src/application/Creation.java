@@ -3,6 +3,9 @@ package application;
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
 public class Creation {
 
 	private String name;
@@ -11,6 +14,16 @@ public class Creation {
 	public Creation(String name) {
 		this.name = name;
 		this.recordings = new ArrayList<Recording>();
+	}
+	
+	public void delete() {
+		for (Recording recording: recordings) {
+			recording.delete();
+		}
+	}
+
+	public void removeRecording(Recording recording) {
+		recordings.remove(recording);
 	}
 	
 	public String getName() {
