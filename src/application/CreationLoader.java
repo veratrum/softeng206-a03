@@ -80,7 +80,7 @@ public class CreationLoader {
 						String isBadString = recordingElement.getAttribute("bad");
 						boolean isBad = isBadString.equals("y");
 						
-						Recording recording = new Recording(recordingFile, isBad);
+						Recording recording = new Recording(creation, recordingFile, isBad);
 						creation.addRecording(recording);
 					}
 					
@@ -129,12 +129,12 @@ public class CreationLoader {
 					
 					// if a creation with that name already exists, add the recording to it
 					if (creations.creationExists(properName)) {
-						Recording newRecording = new Recording(wav);
+						Recording newRecording = new Recording(creations.getCreationByName(properName), wav);
 						creations.getCreationByName(properName).addRecording(newRecording);
 					} else {
 						// otherwise, set up a new recording
 						Creation newCreation = new Creation(properName);
-						Recording newRecording = new Recording(wav);
+						Recording newRecording = new Recording(newCreation, wav);
 						newCreation.addRecording(newRecording);
 						
 						creations.addCreationWithoutSaving(newCreation);

@@ -13,6 +13,16 @@ public class Creation {
 		this.recordings = new ArrayList<Recording>();
 	}
 	
+	public void delete() {
+		for (Recording recording: recordings) {
+			recording.delete();
+		}
+	}
+
+	public void removeRecording(Recording recording) {
+		recordings.remove(recording);
+	}
+	
 	public String getName() {
 		return name;
 	}

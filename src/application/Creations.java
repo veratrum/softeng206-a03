@@ -35,6 +35,14 @@ public class Creations {
 		sortCreations();
 	}
 	
+	public void deleteCreation(Creation creation) {
+		creations.remove(creation);
+		
+		sortCreations();
+		
+		creationLoader.saveMetadata();
+	}
+	
 	public void saveState() {
 		creationLoader.saveMetadata();
 	}
