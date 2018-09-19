@@ -5,12 +5,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.TargetDataLine;
 import javax.swing.SwingWorker;
@@ -27,6 +29,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
@@ -56,7 +59,7 @@ public class SampleController implements Initializable {
 	// REMEBER TO CHECK IF I NEED THIS IN HERE
 	@FXML
 	ProgressBar progressBar;
-	
+
 	// modified from http://proteo.me.uk/2009/10/sound-level-monitoring-in-java/
 	private AudioFormat getAudioFormat(){
 		float sampleRate = 8000.0F;
@@ -67,6 +70,23 @@ public class SampleController implements Initializable {
 
 		return new AudioFormat(sampleRate,sampleSizeInBits,channels,signed,bigEndian);
 	}
+
+	public void PlayAudio(File recordingToPlay) {
+
+		Clip clip;
+		try {
+			clip = AudioSystem.getClip();
+			clip.open(AudioSystem.getAudioInputStream(recordingToPlay));
+			clip.start();
+		} catch (Exception e) {
+
+		}
+	}
+
+
+
+
+
 
 	public void handleCreateRecording(){
 
@@ -89,10 +109,10 @@ public class SampleController implements Initializable {
 					for (Recording recording: selectedRecordings) {
 						recording.delete();
 					}
-					
+
 					return null;
 				}
-					
+
 				@Override
 				protected void done() {
 					// must update ui from 'edt' of javafx
@@ -105,30 +125,66 @@ public class SampleController implements Initializable {
 						}
 					});
 				}
-				
+
 			};
-			
+
 			worker.execute();
 		}
 	}
 
-	public void handlePlayRecording(){
-		if (selectedCreations.size() == 0) {
+	public void handlePlaySelectedRecordings(){
+		if (selectedRecordings.size() == 0) {
 			return;
-		} else if (selectedCreations.size() == 1) {
-			// play one creation
-
+		} else if (selectedRecordings.size() == 1) {
 			//Recording to play
 			if (selectedRecording != null) {
 				File recordingToPlay = selectedRecording.getFile();
-				Media creationMedia = new Media(recordingToPlay.toURI().toString());
-				MediaPlayer mediaPlayer = new MediaPlayer(creationMedia);
-				mediaPlayer.play();
+				PlayAudio(recordingToPlay);
 			}
-
 		} else {
 			// ask the user if they want to randomise the order
-			// then play all selected creations
+			Alert confirmation = new Alert(AlertType.CONFIRMATION);
+			confirmation.setTitle("Play Recordings");
+			confirmation.setHeaderText("Play Multiple Recordings");
+			confirmation.setContentText("You have selected to play multuple recordings\ndo you wish to shuffle the order the selected\nrecordings are played in?");
+			ButtonType buttonYes = new ButtonType("Yes");
+			ButtonType buttonNo = new ButtonType("No");
+			confirmation.getButtonTypes().setAll(buttonYes, buttonNo);
+			Optional<ButtonType> result = confirmation.showAndWait();
+
+
+
+			Task task = new Task<Void>() {
+				@Override
+				protected Void call() throws Exception {
+					// If yes - then we need to shuffle the order of the selected recordings.
+					List<Recording> recordingsToPlay = new ArrayList<Recording>();
+					if (result.get() == buttonYes){
+
+						for(int i = 0; i < selectedRecordings.size(); i++) {
+							recordingsToPlay.add(selectedRecordings.get(i));
+						}
+
+						// Shuffling the recordings
+						Collections.shuffle(recordingsToPlay);
+
+						System.out.println(selectedRecordings);
+						System.out.println("\n");
+						System.out.println(recordingsToPlay);
+					}
+					else {
+						for(int i = 0; i < selectedRecordings.size(); i++) {
+							recordingsToPlay.add(selectedRecordings.get(i));
+						}
+					}
+
+					for (Recording currentRecording : recordingsToPlay) {
+						File recordingToPlay = currentRecording.getFile();
+						PlayAudio(recordingToPlay);
+					}
+
+				}
+			};
 		}
 
 		//Finish this one
@@ -136,82 +192,91 @@ public class SampleController implements Initializable {
 
 
 	}
-	
+
 	public void handleRate(){
 		selectedRecording.setBad(!selectedRecording.isBad());
-		
+
 		updateRecordingList();
 	}
-	
+
 	public void handleTestMicrophone(){
-		
+
 		// Alert the user of what is happening
 		Alert alert = new Alert(AlertType.INFORMATION);
 		alert.setTitle("Microphone Test");
 		alert.setHeaderText("Microphone Test");
 		alert.setContentText("Please speak for 3 seconds and the test\nwill average the input microphone volume.");
 		alert.showAndWait();
-		
-		
-		
-		// modified from http://proteo.me.uk/2009/10/sound-level-monitoring-in-java/
-		double micSum = 0.0;
-		AudioFormat audioFormat = getAudioFormat();
-
-		TargetDataLine targetDataLine;
-		try {
-			targetDataLine = (TargetDataLine) AudioSystem.getTargetDataLine(audioFormat);
-
-			// Setting up the targetDataLine
-			targetDataLine.open();
-			targetDataLine.start();
 
 
-			byte [] buffer = new byte[2000];
-			for (int i=0; i<25; i++) {
-				int bytesRead = targetDataLine.read(buffer,0,buffer.length);
+		Task task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				// modified from http://proteo.me.uk/2009/10/sound-level-monitoring-in-java/
+				double micSum = 0.0;
+				AudioFormat audioFormat = getAudioFormat();
 
-				short max;
-				if (bytesRead >=0) {
-					max = (short) (buffer[0] + (buffer[1] << 8));
-					for (int p=2;p<bytesRead-1;p+=2) {
-						short thisValue = (short) (buffer[p] + (buffer[p+1] << 8));
-						if (thisValue>max) max=thisValue;
-					}
-					if(max >= 0 ) {
-						double micLevel = max/1000.0; //Note: this calculation for mic volume test is based on an approximation of what I determined to be low/average/loud speaking volume.
-						if (micLevel > 1.0) {
-							micLevel = 1.0;
+				TargetDataLine targetDataLine;
+				try {
+					targetDataLine = (TargetDataLine) AudioSystem.getTargetDataLine(audioFormat);
+
+					// Setting up the targetDataLine
+					targetDataLine.open();
+					targetDataLine.start();
+
+
+					byte [] buffer = new byte[2000];
+					for (int i=0; i<25; i++) {
+						int bytesRead = targetDataLine.read(buffer,0,buffer.length);
+
+						short max;
+						if (bytesRead >=0) {
+							max = (short) (buffer[0] + (buffer[1] << 8));
+							for (int p=2;p<bytesRead-1;p+=2) {
+								short thisValue = (short) (buffer[p] + (buffer[p+1] << 8));
+								if (thisValue>max) max=thisValue;
+							}
+							if(max >= 0 ) {
+								double micLevel = max/1000.0; //Note: this calculation for mic volume test is based on an approximation of what I determined to be low/average/loud speaking volume.
+								if (micLevel > 1.0) {
+									micLevel = 1.0;
+								}
+								micSum = micSum + micLevel;
+							}
 						}
-						micSum = micSum + micLevel;
 					}
-				}
-			}
-			
-			targetDataLine.close();
-		} catch (LineUnavailableException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 
-		// Setting the progressBar mic Input level
-		progressBar.setProgress(micSum/25);
-		
+					targetDataLine.close();
+				} catch (LineUnavailableException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					return null;
+				}
+
+				// Setting the progressBar mic Input level
+				progressBar.setProgress(micSum/25);
+
+				return null;
+			}
+		};
+
+		new Thread(task).start();
+
 		// Create a new background thread to reset the mic volume meter after 5 seconds.
 		Task backgroundThread = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
 				Thread.sleep(5000);
 				progressBar.setProgress(0.0);
-				
+
 				return null;
 			}
 		};
 		new Thread(backgroundThread).start();
-		
+
 	}
 
-	public void handlePlayCreations(){
+	public void handlePlayRecording() {
 
 	}
 
@@ -231,7 +296,7 @@ public class SampleController implements Initializable {
 				protected Void doInBackground() throws Exception {
 					for (Creation creation: selectedCreations) {
 						creations.deleteCreation(creation);
-						
+
 						creation.delete();
 
 						// must update ui from 'edt' of javafx
@@ -245,14 +310,18 @@ public class SampleController implements Initializable {
 							}
 						});
 					}
-					
+
 					return null;
 				}
-				
+
 			};
-			
+
 			worker.execute();
 		}
+	}
+
+	public void handlePlayCreations(){
+
 	}
 
 	public void handlePlaySelectedCreations(){
@@ -278,7 +347,7 @@ public class SampleController implements Initializable {
 
 			Button alert2OK = (Button) alert2.getDialogPane().lookupButton(ButtonType.OK);
 			alert2OK.setDisable(true);
-			
+
 			alert2.show();
 
 			// stop recording after 5 seconds
@@ -298,7 +367,7 @@ public class SampleController implements Initializable {
 						@Override
 						public void run() {
 							alert2.close();
-							
+
 							updateRecordingList();
 						}
 					});
@@ -386,14 +455,14 @@ public class SampleController implements Initializable {
 			@Override
 			public void onChanged(Change<? extends Creation> change) {
 				selectedCreations = (ObservableList<Creation>) change.getList();
-				
+
 				/* workaround for what seems to be a bug in the jdk when you attempt
 				 * a certain sequence of list selections: 
 				 * https://bugs.openjdk.java.net/browse/JDK-8173986 */
 				if (selectedCreations.size() > 0 && selectedCreations.get(0) == null) {
 					ArrayList<Creation> oneSelectedCreation = new ArrayList<Creation>();
 					oneSelectedCreation.add(selectedCreation);
-					
+
 					selectedCreations = FXCollections.observableArrayList(oneSelectedCreation);
 				}
 			}
@@ -404,12 +473,12 @@ public class SampleController implements Initializable {
 		}
 
 		creationList.getSelectionModel().selectFirst();
-		
+
 		updateRecordingList();
 
 		recordingList.getSelectionModel().selectFirst();
 	}
-	
+
 	/**
 	 * Updates the list of creations when some are removed or added.
 	 */
@@ -432,7 +501,7 @@ public class SampleController implements Initializable {
 			if (creation == null) {
 				continue;
 			}
-			
+
 			recordings.addAll(creation.getRecordings());
 		}
 
@@ -454,19 +523,19 @@ public class SampleController implements Initializable {
 			@Override
 			public void onChanged(Change<? extends Recording> change) {
 				selectedRecordings = (ObservableList<Recording>) change.getList();
-				
+
 				/* workaround for what seems to be a bug in the jdk when you attempt
 				 * a certain sequence of list selections: 
 				 * https://bugs.openjdk.java.net/browse/JDK-8173986 */
 				if (selectedRecordings.size() > 0 && selectedRecordings.get(0) == null) {
 					ArrayList<Recording> oneSelectedRecording = new ArrayList<Recording>();
 					oneSelectedRecording.add(selectedRecording);
-					
+
 					selectedRecordings = FXCollections.observableArrayList(oneSelectedRecording);
 				}
 			}
 		});
-		
+
 		recordingList.refresh();
 	}
 }
