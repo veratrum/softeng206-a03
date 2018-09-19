@@ -3,9 +3,6 @@ package application;
 import java.util.ArrayList;
 import java.util.List;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-
 public class Creation {
 
 	private String name;

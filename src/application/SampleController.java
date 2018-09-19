@@ -19,9 +19,9 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -29,7 +29,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.layout.Pane;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 
@@ -141,6 +140,16 @@ public class SampleController implements Initializable {
 	}
 	
 	public void handleTestMicrophone(){
+		
+		// Alert the user of what is happening
+		Alert alert = new Alert(AlertType.INFORMATION);
+		alert.setTitle("Microphone Test");
+		alert.setHeaderText("Microphone Test");
+		alert.setContentText("Please speak for 3 seconds and the test\nwill average the input microphone volume.");
+		alert.showAndWait();
+		
+		
+		
 		// modified from http://proteo.me.uk/2009/10/sound-level-monitoring-in-java/
 		double micSum = 0.0;
 		AudioFormat audioFormat = getAudioFormat();
@@ -166,8 +175,7 @@ public class SampleController implements Initializable {
 						if (thisValue>max) max=thisValue;
 					}
 					if(max >= 0 ) {
-						//System.out.println(max);
-						double micLevel = max/1000.0; 
+						double micLevel = max/1000.0; //Note: this calculation for mic volume test is based on an approximation of what I determined to be low/average/loud speaking volume.
 						if (micLevel > 1.0) {
 							micLevel = 1.0;
 						}
@@ -184,7 +192,19 @@ public class SampleController implements Initializable {
 
 		// Setting the progressBar mic Input level
 		progressBar.setProgress(micSum/25);
-
+		
+		// Create a new background thread to reset the mic volume meter after 5 seconds.
+		Task backgroundThread = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				Thread.sleep(5000);
+				progressBar.setProgress(0.0);
+				
+				return null;
+			}
+		};
+		new Thread(backgroundThread).start();
+		
 	}
 
 	public void handlePlayCreations(){
