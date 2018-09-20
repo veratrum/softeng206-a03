@@ -15,8 +15,14 @@ public class Creation {
 	}
 	
 	public void delete() {
-		for (Recording recording: recordings) {
+		for (int i = 0; i < recordings.size(); i++) {
+			Recording recording = recordings.get(i);
+			
 			recording.delete();
+		}
+		
+		while (recordings.size() > 0) {
+			removeRecording(recordings.get(0));
 		}
 	}
 

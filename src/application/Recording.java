@@ -20,6 +20,9 @@ public class Recording {
 	
 	public void delete() {
 		file.delete();
+	}
+	
+	public void removeSelf() {
 		creation.removeRecording(this);
 	}
 	

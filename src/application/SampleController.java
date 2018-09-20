@@ -15,7 +15,6 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.TargetDataLine;
-import javax.swing.SwingWorker;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -29,14 +28,11 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextInputDialog;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
 
 public class SampleController implements Initializable {
 
@@ -98,7 +94,10 @@ public class SampleController implements Initializable {
 				protected Void call() throws Exception {
 					for (Recording recording: selectedRecordings) {
 						recording.delete();
+						recording.removeSelf();
 					}
+					
+					creations.saveState();
 
 					return null;
 				}
@@ -280,11 +279,12 @@ public class SampleController implements Initializable {
 
 				@Override
 				protected Void call() throws Exception {
-					for (Creation creation: selectedCreations) {
+					for (int i = 0; i < selectedCreations.size(); i++) {
+						Creation creation = selectedCreations.get(i);
+						
 						creations.deleteCreation(creation);
 
 						creation.delete();
-
 					}
 					
 					return null;
@@ -324,107 +324,145 @@ public class SampleController implements Initializable {
 		alert1.setHeaderText("Create a new Recording for Name " + selectedCreation.getName());
 		alert1.setContentText("Press OK to start recording for 5 seconds.");
 
-		Creation selectedCreationAtInstant = selectedCreation;
-		String filename = selectedCreation.generateRecordingFilename();
-
 		Optional<ButtonType> result = alert1.showAndWait();
 		if (result.get() == ButtonType.OK) {
-			Alert alert2 = new Alert(AlertType.INFORMATION);
-			alert2.setTitle("Now recording");
-			alert2.setHeaderText(null);
-			alert2.setContentText("Say the name " + selectedCreation.getName() + " now. You have 5 seconds.");
-
-			Button alert2OK = (Button) alert2.getDialogPane().lookupButton(ButtonType.OK);
-			alert2OK.setDisable(true);
-
-			alert2.show();
-
-			// stop recording after 5 seconds
-			isRecording = true;
-			Thread wait5Seconds = new Thread(new Task<Void>() {
-				@Override
-				protected Void call() throws Exception {
-					Thread.sleep(5000);
-					isRecording = false;
-					
-					return null;
-				}
-			});
-			wait5Seconds.start();
-			
-			// this thread runs concurrently to wait5Seconds, and stops when 5 seconds have passed
-			Thread recordAudio = new Thread(new Task<Void>() {
-				@Override
-				protected Void call() throws Exception {
-					AudioFormat audioFormat = getAudioFormat();
-
-					// modified from https://docs.oracle.com/javase/tutorial/sound/capturing.html
-					TargetDataLine targetDataLine;
-					try {
-						targetDataLine = (TargetDataLine) AudioSystem.getTargetDataLine(audioFormat);
-
-						targetDataLine.open();
-						
-						ByteArrayOutputStream out = new ByteArrayOutputStream();
-						int numBytesRead;
-						byte[] data = new byte[targetDataLine.getBufferSize() / 5];
-						
-						targetDataLine.start();
-						
-						while (isRecording) {
-							numBytesRead = targetDataLine.read(data, 0, data.length);
-							
-							out.write(data, 0, numBytesRead);
-						}
-						
-						targetDataLine.close();
-						
-						// write the output to a file
-						FileOutputStream fileStream = new FileOutputStream("userdata" + File.separator + filename);
-						
-						out.writeTo(fileStream);
-						
-						out.close();
-						fileStream.close();
-					} catch (LineUnavailableException e) {
-						e.printStackTrace();
-					}
-
-					return null;
-				}
-				
-				@Override
-				protected void done() {
-					selectedCreationAtInstant.addRecording(new Recording(selectedCreationAtInstant, new File(
-							"userdata" + File.separator + filename)));
-					creations.saveState();
-
-					// must update ui from 'edt' of javafx
-					Platform.runLater(new Runnable() {
-						@Override
-						public void run() {
-							alert2.close();
-
-							updateRecordingList();
-						}
-					});
-				}
-			});
-			recordAudio.start();
+			doNewRecording(selectedCreation);
 		}
 	}
 
 	public void handleNewCreation(){
-		TextInputDialog dialog = new TextInputDialog("");
+		TextInputDialog enterName = new TextInputDialog("");
 		
-		dialog.setTitle("Make a new Name");
-		dialog.setHeaderText(null);
-		dialog.setContentText("Enter a name:");
+		enterName.setTitle("Create a new Name");
+		enterName.setHeaderText(null);
+		enterName.setContentText("Enter a name:");
 		
-		Optional<String> result = dialog.showAndWait();
-		if (result.isPresent()) {
-		    System.out.println("Your name: " + result.get());
+		Optional<String> nameResult = enterName.showAndWait();
+		if (nameResult.isPresent()) {
+			String newName = nameResult.get();
+			
+			if (creations.creationExists(newName)) {
+				Alert alert1 = new Alert(AlertType.CONFIRMATION);
+				alert1.setTitle("Create a new Name");
+				alert1.setHeaderText("Name " + newName + " already exists.");
+				alert1.setContentText("Would you like to add a new Recording to Name " + newName + "?");
+				
+				Optional<ButtonType> result1 = alert1.showAndWait();
+				if (result1.get() == ButtonType.OK) {
+					doNewRecording(creations.getCreationByName(newName));
+				}
+			} else {
+				Creation newCreation = new Creation(newName);
+				
+				creations.addCreation(newCreation);
+				
+				Alert alert1 = new Alert(AlertType.CONFIRMATION);
+				alert1.setTitle("Create a new Name");
+				alert1.setHeaderText("Created Name " + newName + " successfully.");
+				alert1.setContentText("Would you like to add a new Recording to Name " + newName + "?");
+				
+				updateCreationList();
+				
+				creationList.getSelectionModel().clearSelection();
+				creationList.getSelectionModel().select(newCreation);
+				
+				Optional<ButtonType> result1 = alert1.showAndWait();
+				if (result1.get() == ButtonType.OK) {
+					doNewRecording(creations.getCreationByName(newName));
+				}
+			}
 		}
+	}
+	
+	/**
+	 * Helper method to be reused
+	 */
+	private void doNewRecording(Creation parentCreation) {
+		Creation selectedCreationAtInstant = parentCreation;
+		String filename = parentCreation.generateRecordingFilename();
+		
+		Alert alert2 = new Alert(AlertType.INFORMATION);
+		alert2.setTitle("Now recording");
+		alert2.setHeaderText(null);
+		alert2.setContentText("Say the name " + selectedCreationAtInstant.getName() + " now. You have 5 seconds.");
+
+		Button alert2OK = (Button) alert2.getDialogPane().lookupButton(ButtonType.OK);
+		alert2OK.setDisable(true);
+
+		alert2.show();
+
+		// stop recording after 5 seconds
+		isRecording = true;
+		Thread wait5Seconds = new Thread(new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				Thread.sleep(5000);
+				isRecording = false;
+				
+				return null;
+			}
+		});
+		wait5Seconds.start();
+		
+		// this thread runs concurrently to wait5Seconds, and stops when 5 seconds have passed
+		Thread recordAudio = new Thread(new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				AudioFormat audioFormat = getAudioFormat();
+
+				// modified from https://docs.oracle.com/javase/tutorial/sound/capturing.html
+				TargetDataLine targetDataLine;
+				try {
+					targetDataLine = (TargetDataLine) AudioSystem.getTargetDataLine(audioFormat);
+
+					targetDataLine.open();
+					
+					ByteArrayOutputStream out = new ByteArrayOutputStream();
+					int numBytesRead;
+					byte[] data = new byte[targetDataLine.getBufferSize() / 5];
+					
+					targetDataLine.start();
+					
+					while (isRecording) {
+						numBytesRead = targetDataLine.read(data, 0, data.length);
+						
+						out.write(data, 0, numBytesRead);
+					}
+					
+					targetDataLine.close();
+					
+					// write the output to a file
+					FileOutputStream fileStream = new FileOutputStream("userdata" + File.separator + filename);
+					
+					out.writeTo(fileStream);
+					
+					out.close();
+					fileStream.close();
+				} catch (LineUnavailableException e) {
+					e.printStackTrace();
+				}
+
+				return null;
+			}
+			
+			@Override
+			protected void done() {
+				selectedCreationAtInstant.addRecording(new Recording(selectedCreationAtInstant, new File(
+						"userdata" + File.separator + filename)));
+				creations.saveState();
+
+				// must update ui from 'edt' of javafx
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						alert2.close();
+
+						updateRecordingList();
+					}
+				});
+			}
+		});
+		recordAudio.start();
 	}
 
 	@Override
