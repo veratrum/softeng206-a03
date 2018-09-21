@@ -126,10 +126,21 @@ public class SampleController implements Initializable {
 		} else if (selectedRecordings.size() == 1) {
 			//Recording to play
 			if (selectedRecording != null) {
-				File recordingToPlay = selectedRecording.getFile();
-				PlayAudio(recordingToPlay);
+				// Playing audio in background thread
+				Task task = new Task<Void>() {
+					@Override
+					protected Void call() throws Exception {
+						File recordingToPlay = selectedRecording.getFile();
+						PlayAudio(recordingToPlay);
+						return null;
+					}
+				};
+				new Thread(task).start();
 			}
-		} else {
+		}
+		else {
+
+
 			// ask the user if they want to randomise the order
 			Alert confirmation = new Alert(AlertType.CONFIRMATION);
 			confirmation.setTitle("Play Recordings");
@@ -141,7 +152,6 @@ public class SampleController implements Initializable {
 			Optional<ButtonType> result = confirmation.showAndWait();
 
 
-
 			Task task = new Task<Void>() {
 				@Override
 				protected Void call() throws Exception {
@@ -149,37 +159,31 @@ public class SampleController implements Initializable {
 					List<Recording> recordingsToPlay = new ArrayList<Recording>();
 					if (result.get() == buttonYes){
 
+						// Copying the selected to recordings to a list that can be shuffled as the other list is non-modifiable
 						for(int i = 0; i < selectedRecordings.size(); i++) {
 							recordingsToPlay.add(selectedRecordings.get(i));
 						}
 
 						// Shuffling the recordings
 						Collections.shuffle(recordingsToPlay);
-
-						System.out.println(selectedRecordings);
-						System.out.println("\n");
-						System.out.println(recordingsToPlay);
 					}
 					else {
+						// Copying the selected to recordings to a list of the same name as the one that gets shuffled for consistency.
 						for(int i = 0; i < selectedRecordings.size(); i++) {
 							recordingsToPlay.add(selectedRecordings.get(i));
 						}
 					}
 
-					for (Recording currentRecording : recordingsToPlay) {
+					for (Recording currentRecording:recordingsToPlay) {
 						File recordingToPlay = currentRecording.getFile();
 						PlayAudio(recordingToPlay);
 					}
-					return null;
 
+					return null;
 				}
 			};
+			new Thread(task).start();
 		}
-
-		//Finish this one
-
-
-
 	}
 
 	public void handleRate(){
@@ -310,13 +314,63 @@ public class SampleController implements Initializable {
 			deleteCreation.start();
 		}
 	}
+	
+	public void handlePlayAllRecordingsForSelectedNames(){
+		// start and finish working on this one. - ask user to shuffle!!!!!!!!!!!!!!! - and put it in a background thread so GUI doesnt freeze
 
-	public void handlePlayCreations(){
+		// If there are no selected creations finish function call.
+		if (selectedCreations.size() == 0) {
+			return;
+		}
+		// If there are more than one selected handle it correctly.
+		else if (selectedCreations.size() > 0) {
 
-	}
+			// ask the user if they want to randomise the order
+			Alert confirmation = new Alert(AlertType.CONFIRMATION);
+			confirmation.setTitle("Play Recordings");
+			confirmation.setHeaderText("Play Multiple Recordings");
+			confirmation.setContentText("You have selected to play multuple recordings\ndo you wish to shuffle the order the selected\nrecordings are played in?");
+			ButtonType buttonYes = new ButtonType("Yes");
+			ButtonType buttonNo = new ButtonType("No");
+			confirmation.getButtonTypes().setAll(buttonYes, buttonNo);
+			Optional<ButtonType> result = confirmation.showAndWait();
 
-	public void handlePlaySelectedCreations(){
+			// Playing the audio in a background thread so the GUI doesn't freeze
+			Task task = new Task<Void>() {
+				@Override
+				protected Void call() throws Exception {
 
+					// Create a list to store all recordings to be played.
+					List<Recording> allRecordingsToPlay = new ArrayList<Recording>();
+
+					for(Creation currentCreation:selectedCreations) {
+
+						// Get the recordings for the current creation
+						List<Recording> currentCreationRecordings = currentCreation.getRecordings();
+
+						for(Recording currentRecording:currentCreationRecordings) {
+							// Store all recordings for the current recording in the allRecordings list.
+							allRecordingsToPlay.add(currentRecording);
+						}
+					}
+
+					// If the user selected yes then we need to randomise the list
+					if (result.get() == buttonYes){
+						Collections.shuffle(allRecordingsToPlay);
+					}
+
+					// Now iterate over the list and play all the recordings.
+					for (Recording currentRecording : allRecordingsToPlay) {
+						File recordingToPlay = currentRecording.getFile();
+						PlayAudio(recordingToPlay);
+					}
+					return null;
+				}
+			};
+
+			new Thread(task).start();
+
+		}
 	}
 
 	public void handleNewRecording(){
