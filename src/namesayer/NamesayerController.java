@@ -190,11 +190,13 @@ public class NamesayerController implements Initializable {
 	}
 
 	public void handleRate(){
-		selectedRecording.setBad(!selectedRecording.isBad());
+		for (Recording recording: selectedRecordings) {
+			recording.setBad(!recording.isBad());
+		}
 		
 		creations.saveState();
 
-		updateRecordingList();
+		recordingList.refresh();
 	}
 
 	public void handleTestMicrophone(){
