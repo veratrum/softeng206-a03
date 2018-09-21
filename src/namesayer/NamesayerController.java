@@ -419,7 +419,7 @@ public class NamesayerController implements Initializable {
 				Alert alert1 = new Alert(AlertType.CONFIRMATION);
 				alert1.setTitle("Create a new Name");
 				alert1.setHeaderText("Created Name " + newName + " successfully.");
-				alert1.setContentText("Would you like to add a new Recording to Name " + newName + "?");
+				alert1.setContentText("Would you like to add a new Recording to Name\n" + newName + "?");
 				
 				updateCreationList();
 				
