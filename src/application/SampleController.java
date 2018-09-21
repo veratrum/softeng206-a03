@@ -184,6 +184,8 @@ public class SampleController implements Initializable {
 
 	public void handleRate(){
 		selectedRecording.setBad(!selectedRecording.isBad());
+		
+		creations.saveState();
 
 		updateRecordingList();
 	}
