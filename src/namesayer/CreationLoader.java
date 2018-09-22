@@ -1,7 +1,9 @@
 package namesayer;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -197,6 +199,48 @@ public class CreationLoader {
 			e.printStackTrace();
 		} catch (TransformerException e) {
 			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		saveSeparateRatingsFile();
+	}
+	
+	/**
+	 * Saves the rating data in a text file that is more simply formatted, for use in
+	 * other scripts, etc.
+	 * 
+	 * We weren't sure if this was necessary because the specification was somewhat vague,
+	 * but we decided to include it just in case.
+	 */
+	public void saveSeparateRatingsFile() {
+		String data = "";
+		for (Creation creation: creations.getCreations()) {
+			for (Recording recording: creation.getRecordings()) {
+				data += recording.getFile().getName();
+				
+				if (recording.isBad()) {
+					data += " BAD";
+				} else {
+					data += " GOOD";
+				}
+				
+				data += System.lineSeparator();
+			}
+		}
+		
+		File ratingsText = new File("userdata" + File.separator + "ratings.txt");
+		try {
+			ratingsText.createNewFile();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		// https://stackoverflow.com/a/1053475
+		try {
+			PrintWriter out = new PrintWriter(ratingsText);
+			out.write(data);
+			out.close();
+		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
 	}
