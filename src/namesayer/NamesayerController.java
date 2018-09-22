@@ -1,4 +1,4 @@
-package application;
+package namesayer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -34,7 +34,7 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextInputDialog;
 
-public class SampleController implements Initializable {
+public class NamesayerController implements Initializable {
 
 	@FXML
 	private ListView<Creation> creationList;
@@ -74,10 +74,13 @@ public class SampleController implements Initializable {
 			clip = AudioSystem.getClip();
 			clip.open(AudioSystem.getAudioInputStream(recordingToPlay));
 			clip.start();
+			Thread.sleep(clip.getMicrosecondLength()/1000);
 		} catch (Exception e) {
 
 		}
 	}
+	
+
 
 	public void handleDeleteRecording(){
 		// dialog code modified from https://code.makery.ch/blog/javafx-dialogs-official/
@@ -127,7 +130,7 @@ public class SampleController implements Initializable {
 			//Recording to play
 			if (selectedRecording != null) {
 				// Playing audio in background thread
-				Task task = new Task<Void>() {
+				Task<Void> task = new Task<Void>() {
 					@Override
 					protected Void call() throws Exception {
 						File recordingToPlay = selectedRecording.getFile();
@@ -152,7 +155,7 @@ public class SampleController implements Initializable {
 			Optional<ButtonType> result = confirmation.showAndWait();
 
 
-			Task task = new Task<Void>() {
+			Task<Void> task = new Task<Void>() {
 				@Override
 				protected Void call() throws Exception {
 					// If yes - then we need to shuffle the order of the selected recordings.
@@ -206,7 +209,7 @@ public class SampleController implements Initializable {
 		alert.showAndWait();
 
 
-		Task task = new Task<Void>() {
+		Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
 				// modified from http://proteo.me.uk/2009/10/sound-level-monitoring-in-java/
@@ -260,7 +263,7 @@ public class SampleController implements Initializable {
 		new Thread(task).start();
 
 		// Create a new background thread to reset the mic volume meter after 5 seconds.
-		Task backgroundThread = new Task<Void>() {
+		Task<Void> backgroundThread = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
 				Thread.sleep(5000);
@@ -318,7 +321,6 @@ public class SampleController implements Initializable {
 	}
 	
 	public void handlePlayAllRecordingsForSelectedNames(){
-		// start and finish working on this one. - ask user to shuffle!!!!!!!!!!!!!!! - and put it in a background thread so GUI doesnt freeze
 
 		// If there are no selected creations finish function call.
 		if (selectedCreations.size() == 0) {
@@ -338,7 +340,7 @@ public class SampleController implements Initializable {
 			Optional<ButtonType> result = confirmation.showAndWait();
 
 			// Playing the audio in a background thread so the GUI doesn't freeze
-			Task task = new Task<Void>() {
+			Task<Void> task = new Task<Void>() {
 				@Override
 				protected Void call() throws Exception {
 
@@ -417,7 +419,7 @@ public class SampleController implements Initializable {
 				Alert alert1 = new Alert(AlertType.CONFIRMATION);
 				alert1.setTitle("Create a new Name");
 				alert1.setHeaderText("Created Name " + newName + " successfully.");
-				alert1.setContentText("Would you like to add a new Recording to Name " + newName + "?");
+				alert1.setContentText("Would you like to add a new Recording to Name\n" + newName + "?");
 				
 				updateCreationList();
 				
@@ -502,6 +504,7 @@ public class SampleController implements Initializable {
 
 				return null;
 			}
+			
 			
 			@Override
 			protected void done() {
