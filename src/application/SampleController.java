@@ -437,7 +437,7 @@ public class SampleController implements Initializable {
 	 */
 	private void doNewRecording(Creation parentCreation) {
 		Creation selectedCreationAtInstant = parentCreation;
-		String filename = parentCreation.generateRecordingFilename();
+		String filename = creations.generateRecordingFilename(parentCreation.getName());
 		
 		Alert alert2 = new Alert(AlertType.INFORMATION);
 		alert2.setTitle("Now recording");
