@@ -1,5 +1,6 @@
 package namesayer;
 
+import javafx.scene.control.TextField;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -49,12 +50,15 @@ public class NamesayerController implements Initializable {
 	private Recording selectedRecording;
 	private ObservableList<Creation> selectedCreations;
 	private ObservableList<Recording> selectedRecordings;
-	
+
 	private boolean isRecording;
 
 	// REMEBER TO CHECK IF I NEED THIS IN HERE
 	@FXML
 	ProgressBar progressBar;
+	
+	@FXML
+	TextField currentlyPlaying;
 
 	// modified from http://proteo.me.uk/2009/10/sound-level-monitoring-in-java/
 	private AudioFormat getAudioFormat(){
@@ -67,19 +71,46 @@ public class NamesayerController implements Initializable {
 		return new AudioFormat(sampleRate,sampleSizeInBits,channels,signed,bigEndian);
 	}
 
-	public void PlayAudio(File recordingToPlay) {
-
+	public void PlayAudio(Recording recording) {
+		File recordingToPlay = recording.getFile();
 		Clip clip;
 		try {
 			clip = AudioSystem.getClip();
 			clip.open(AudioSystem.getAudioInputStream(recordingToPlay));
 			clip.start();
+
+			// Update the GUI to show the user what name is playing.
+			
+			new Thread(new Runnable() {
+				@Override public void run() {
+					Platform.runLater(new Runnable() {
+						@Override public void run() {
+							currentlyPlaying.setText(recording.getCreation().toString());
+						}
+					});
+					
+				}
+			}).start();
+		
+
+			//Sleep the thread so that the recordings don't all play at once.
 			Thread.sleep(clip.getMicrosecondLength()/1000);
+			
+			new Thread(new Runnable() {
+				@Override public void run() {
+					Platform.runLater(new Runnable() {
+						@Override public void run() {
+							currentlyPlaying.setText("");
+						}
+					});
+					
+				}
+			}).start();
 		} catch (Exception e) {
 
 		}
 	}
-	
+
 
 
 	public void handleDeleteRecording(){
@@ -99,7 +130,7 @@ public class NamesayerController implements Initializable {
 						recording.delete();
 						recording.removeSelf();
 					}
-					
+
 					creations.saveState();
 
 					return null;
@@ -133,8 +164,8 @@ public class NamesayerController implements Initializable {
 				Task<Void> task = new Task<Void>() {
 					@Override
 					protected Void call() throws Exception {
-						File recordingToPlay = selectedRecording.getFile();
-						PlayAudio(recordingToPlay);
+
+						PlayAudio(selectedRecording);
 						return null;
 					}
 				};
@@ -178,8 +209,8 @@ public class NamesayerController implements Initializable {
 					}
 
 					for (Recording currentRecording:recordingsToPlay) {
-						File recordingToPlay = currentRecording.getFile();
-						PlayAudio(recordingToPlay);
+
+						PlayAudio(currentRecording);
 					}
 
 					return null;
@@ -193,7 +224,7 @@ public class NamesayerController implements Initializable {
 		for (Recording recording: selectedRecordings) {
 			recording.setBad(!recording.isBad());
 		}
-		
+
 		creations.saveState();
 
 		recordingList.refresh();
@@ -292,15 +323,15 @@ public class NamesayerController implements Initializable {
 				protected Void call() throws Exception {
 					for (int i = 0; i < selectedCreations.size(); i++) {
 						Creation creation = selectedCreations.get(i);
-						
+
 						creations.deleteCreation(creation);
 
 						creation.delete();
 					}
-					
+
 					return null;
 				}
-				
+
 				@Override
 				protected void done() {
 					// must update ui from 'edt' of javafx
@@ -319,7 +350,7 @@ public class NamesayerController implements Initializable {
 			deleteCreation.start();
 		}
 	}
-	
+
 	public void handlePlayAllRecordingsForSelectedNames(){
 
 		// If there are no selected creations finish function call.
@@ -329,15 +360,39 @@ public class NamesayerController implements Initializable {
 		// If there are more than one selected handle it correctly.
 		else if (selectedCreations.size() > 0) {
 
-			// ask the user if they want to randomise the order
-			Alert confirmation = new Alert(AlertType.CONFIRMATION);
-			confirmation.setTitle("Play Recordings");
-			confirmation.setHeaderText("Play Multiple Recordings");
-			confirmation.setContentText("You have selected to play multuple recordings\ndo you wish to shuffle the order the selected\nrecordings are played in?");
-			ButtonType buttonYes = new ButtonType("Yes");
-			ButtonType buttonNo = new ButtonType("No");
-			confirmation.getButtonTypes().setAll(buttonYes, buttonNo);
-			Optional<ButtonType> result = confirmation.showAndWait();
+			boolean needToAskToRandomize = false;
+			final boolean shouldRandomize;
+			int recordingCount = 0;
+			for (Creation creations:selectedCreations) {
+				List<Recording> recordings = creations.getRecordings();
+				recordingCount = recordingCount + recordings.size();
+			}
+
+			if (recordingCount > 1) {
+				needToAskToRandomize = true;
+			}
+
+			if (needToAskToRandomize == true) {
+				// ask the user if they want to randomise the order
+				Alert confirmation = new Alert(AlertType.CONFIRMATION);
+				confirmation.setTitle("Play Recordings");
+				confirmation.setHeaderText("Play Multiple Recordings");
+				confirmation.setContentText("You have selected to play multuple recordings\ndo you wish to shuffle the order the selected\nrecordings are played in?");
+				ButtonType buttonYes = new ButtonType("Yes");
+				ButtonType buttonNo = new ButtonType("No");
+				confirmation.getButtonTypes().setAll(buttonYes, buttonNo);
+				Optional<ButtonType> result = confirmation.showAndWait();
+
+				if (result.get() == buttonYes){
+					shouldRandomize = true;
+				}
+				else {
+					shouldRandomize = false;
+				}
+			}
+			else {
+				shouldRandomize = false;
+			}
 
 			// Playing the audio in a background thread so the GUI doesn't freeze
 			Task<Void> task = new Task<Void>() {
@@ -359,14 +414,13 @@ public class NamesayerController implements Initializable {
 					}
 
 					// If the user selected yes then we need to randomise the list
-					if (result.get() == buttonYes){
+					if (shouldRandomize == true){
 						Collections.shuffle(allRecordingsToPlay);
 					}
 
 					// Now iterate over the list and play all the recordings.
 					for (Recording currentRecording : allRecordingsToPlay) {
-						File recordingToPlay = currentRecording.getFile();
-						PlayAudio(recordingToPlay);
+						PlayAudio(currentRecording);
 					}
 					return null;
 				}
@@ -392,40 +446,40 @@ public class NamesayerController implements Initializable {
 
 	public void handleNewCreation(){
 		TextInputDialog enterName = new TextInputDialog("");
-		
+
 		enterName.setTitle("Create a new Name");
 		enterName.setHeaderText(null);
 		enterName.setContentText("Enter a name:");
-		
+
 		Optional<String> nameResult = enterName.showAndWait();
 		if (nameResult.isPresent()) {
 			String newName = nameResult.get();
-			
+
 			if (creations.creationExists(newName)) {
 				Alert alert1 = new Alert(AlertType.CONFIRMATION);
 				alert1.setTitle("Create a new Name");
 				alert1.setHeaderText("Name " + newName + " already exists.");
 				alert1.setContentText("Would you like to add a new Recording to Name " + newName + "?");
-				
+
 				Optional<ButtonType> result1 = alert1.showAndWait();
 				if (result1.get() == ButtonType.OK) {
 					doNewRecording(creations.getCreationByName(newName));
 				}
 			} else {
 				Creation newCreation = new Creation(newName);
-				
+
 				creations.addCreation(newCreation);
-				
+
 				Alert alert1 = new Alert(AlertType.CONFIRMATION);
 				alert1.setTitle("Create a new Name");
 				alert1.setHeaderText("Created Name " + newName + " successfully.");
 				alert1.setContentText("Would you like to add a new Recording to Name\n" + newName + "?");
-				
+
 				updateCreationList();
-				
+
 				creationList.getSelectionModel().clearSelection();
 				creationList.getSelectionModel().select(newCreation);
-				
+
 				Optional<ButtonType> result1 = alert1.showAndWait();
 				if (result1.get() == ButtonType.OK) {
 					doNewRecording(creations.getCreationByName(newName));
@@ -433,14 +487,14 @@ public class NamesayerController implements Initializable {
 			}
 		}
 	}
-	
+
 	/**
 	 * Helper method to be reused
 	 */
 	private void doNewRecording(Creation parentCreation) {
 		Creation selectedCreationAtInstant = parentCreation;
 		String filename = parentCreation.generateRecordingFilename();
-		
+
 		Alert alert2 = new Alert(AlertType.INFORMATION);
 		alert2.setTitle("Now recording");
 		alert2.setHeaderText(null);
@@ -458,12 +512,12 @@ public class NamesayerController implements Initializable {
 			protected Void call() throws Exception {
 				Thread.sleep(5000);
 				isRecording = false;
-				
+
 				return null;
 			}
 		});
 		wait5Seconds.start();
-		
+
 		// this thread runs concurrently to wait5Seconds, and stops when 5 seconds have passed
 		Thread recordAudio = new Thread(new Task<Void>() {
 			@Override
@@ -476,26 +530,26 @@ public class NamesayerController implements Initializable {
 					targetDataLine = (TargetDataLine) AudioSystem.getTargetDataLine(audioFormat);
 
 					targetDataLine.open();
-					
+
 					ByteArrayOutputStream out = new ByteArrayOutputStream();
 					int numBytesRead;
 					byte[] data = new byte[targetDataLine.getBufferSize() / 5];
-					
+
 					targetDataLine.start();
-					
+
 					while (isRecording) {
 						numBytesRead = targetDataLine.read(data, 0, data.length);
-						
+
 						out.write(data, 0, numBytesRead);
 					}
-					
+
 					targetDataLine.close();
-					
+
 					// write the output to a file
 					FileOutputStream fileStream = new FileOutputStream("userdata" + File.separator + filename);
-					
+
 					out.writeTo(fileStream);
-					
+
 					out.close();
 					fileStream.close();
 				} catch (LineUnavailableException e) {
@@ -504,8 +558,8 @@ public class NamesayerController implements Initializable {
 
 				return null;
 			}
-			
-			
+
+
 			@Override
 			protected void done() {
 				selectedCreationAtInstant.addRecording(new Recording(selectedCreationAtInstant, new File(
@@ -543,7 +597,7 @@ public class NamesayerController implements Initializable {
 			public void changed(ObservableValue<? extends Creation> observable, Creation oldValue, Creation newValue) {
 				selectedCreation = newValue;
 				updateRecordingList();
-				
+
 				recordingList.getSelectionModel().clearSelection();
 				recordingList.getSelectionModel().selectFirst();
 			}

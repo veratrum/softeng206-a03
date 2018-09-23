@@ -38,6 +38,10 @@ public class Recording {
 		return file;
 	}
 	
+	public Creation getCreation() {
+		return creation;
+	}
+	
 	@Override
 	public String toString() {
 		String representation = file.getName();
