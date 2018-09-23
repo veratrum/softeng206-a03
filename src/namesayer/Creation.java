@@ -1,6 +1,5 @@
 package namesayer;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,14 +39,6 @@ public class Creation {
 	
 	public List<Recording> getRecordings() {
 		return recordings;
-	}
-	
-	public String generateRecordingFilename() {
-		LocalDateTime now = LocalDateTime.now();
-		String filename = "se206_" + now.getDayOfMonth() + "-" + now.getMonthValue() + "-" + now.getYear() + "_" + now.getHour()
-				+ "-" + now.getMinute() + "-" + now.getSecond() + "_" + name + ".wav";
-		
-		return filename;
 	}
 	
 	@Override

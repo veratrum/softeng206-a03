@@ -459,7 +459,7 @@ public class NamesayerController implements Initializable {
 				Alert alert1 = new Alert(AlertType.CONFIRMATION);
 				alert1.setTitle("Create a new Name");
 				alert1.setHeaderText("Name " + newName + " already exists.");
-				alert1.setContentText("Would you like to add a new Recording to Name " + newName + "?");
+				alert1.setContentText("Would you like to add a new Recording to Name\n" + newName + "?");
 
 				Optional<ButtonType> result1 = alert1.showAndWait();
 				if (result1.get() == ButtonType.OK) {
@@ -493,7 +493,8 @@ public class NamesayerController implements Initializable {
 	 */
 	private void doNewRecording(Creation parentCreation) {
 		Creation selectedCreationAtInstant = parentCreation;
-		String filename = parentCreation.generateRecordingFilename();
+
+		String filename = creations.generateRecordingFilename(parentCreation.getName());
 
 		Alert alert2 = new Alert(AlertType.INFORMATION);
 		alert2.setTitle("Now recording");

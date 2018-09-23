@@ -71,6 +71,34 @@ public class Creations {
 		return null;
 	}
 	
+	public boolean recordingExists(String filename) {
+		for (Creation creation: creations) {
+			for (Recording recording: creation.getRecordings()) {
+				if (recording.getFile().getName().equals(filename)) {
+					return true;
+				}
+			}
+		}
+		
+		return false;
+	}
+	
+	public String generateRecordingFilename(String creationName) {
+		String filename = creationName + ".wav";
+		if (!recordingExists(filename)) {
+			return filename;
+		}
+		
+		int tries = 2;
+		String repeatName = creationName + " (" + tries + ").wav";
+		while (recordingExists(repeatName)) {
+			tries++;
+			repeatName = creationName + " (" + tries + ").wav";
+		}
+		
+		return repeatName;
+	}
+	
 	/**
 	 * Sorts all creations in alphabetical order.
 	 */
