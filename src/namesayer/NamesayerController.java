@@ -445,15 +445,35 @@ public class NamesayerController implements Initializable {
 	}
 
 	public void handleNewCreation(){
+		doNewCreation(false);
+	}
+	
+	/**
+	 * Prompts the user for a name, will call itself recursively until a valid name is supplied.
+	 */
+	private void doNewCreation(boolean invalidName) {
 		TextInputDialog enterName = new TextInputDialog("");
 
 		enterName.setTitle("Create a new Name");
-		enterName.setHeaderText(null);
+		
+		if (invalidName) {
+			enterName.setHeaderText("Invalid Name.\nA Name must start with a capital letter,\n"
+					+ "be between 1 and 32 characters long,\n"
+					+ "and contain only letters and underscores.");
+		} else {
+			enterName.setHeaderText(null);
+		}
+		
 		enterName.setContentText("Enter a name:");
 
 		Optional<String> nameResult = enterName.showAndWait();
 		if (nameResult.isPresent()) {
 			String newName = nameResult.get();
+			
+			if (!creations.isValidName(newName)) {
+				doNewCreation(true);
+				return;
+			}
 
 			if (creations.creationExists(newName)) {
 				Alert alert1 = new Alert(AlertType.CONFIRMATION);
@@ -523,43 +543,20 @@ public class NamesayerController implements Initializable {
 		Thread recordAudio = new Thread(new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
-				AudioFormat audioFormat = getAudioFormat();
-
-				// modified from https://docs.oracle.com/javase/tutorial/sound/capturing.html
-				TargetDataLine targetDataLine;
-				try {
-					targetDataLine = (TargetDataLine) AudioSystem.getTargetDataLine(audioFormat);
-
-					targetDataLine.open();
-
-					ByteArrayOutputStream out = new ByteArrayOutputStream();
-					int numBytesRead;
-					byte[] data = new byte[targetDataLine.getBufferSize() / 5];
-
-					targetDataLine.start();
-
-					while (isRecording) {
-						numBytesRead = targetDataLine.read(data, 0, data.length);
-
-						out.write(data, 0, numBytesRead);
-					}
-
-					targetDataLine.close();
-
-					// write the output to a file
-					FileOutputStream fileStream = new FileOutputStream("userdata" + File.separator + filename);
-
-					out.writeTo(fileStream);
-
-					out.close();
-					fileStream.close();
-				} catch (LineUnavailableException e) {
-					e.printStackTrace();
-				}
+				// linux version
+				ProcessBuilder arecordProcessBuilder = new ProcessBuilder("bash", "-c",
+						"arecord -d 5 \"userdata" + File.separator + filename + "\"");
+				// windows version
+				/*ProcessBuilder arecordProcessBuilder = new ProcessBuilder("cmd", "/c",
+						"ffmpeg -y -t 5 -f dshow -i audio=\"Microphone (Realtek High Definition Audio)\" \"userdata"
+						+ File.separator + filename + "\"");*/
+				
+				Process arecordProcess = arecordProcessBuilder.start();
+				
+				arecordProcess.waitFor();
 
 				return null;
 			}
-
 
 			@Override
 			protected void done() {

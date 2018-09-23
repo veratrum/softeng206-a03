@@ -99,6 +99,26 @@ public class Creations {
 		return repeatName;
 	}
 	
+	public boolean isValidName(String name) {
+		if (name.length() == 0 || name.length() > 32) {
+			return false;
+		}
+		
+		if (!Character.isLetter(name.charAt(0)) || !Character.isUpperCase(name.charAt(0))) {
+			return false;
+		}
+		
+		for (int i = 0; i < name.length(); i++) {
+			char character = name.charAt(i);
+			
+			if (!Character.isLetter(character) && !(character == '_')) {
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
 	/**
 	 * Sorts all creations in alphabetical order.
 	 */
