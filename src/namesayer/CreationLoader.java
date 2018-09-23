@@ -89,13 +89,10 @@ public class CreationLoader {
 					creations.addCreationWithoutSaving(creation);
 				}
 			} catch (ParserConfigurationException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (SAXException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -195,10 +192,8 @@ public class CreationLoader {
 			StreamResult result = new StreamResult(metadata);
 			transformer.transform(source, result);
 		} catch (ParserConfigurationException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (TransformerException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		

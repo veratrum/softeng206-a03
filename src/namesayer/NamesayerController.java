@@ -435,7 +435,7 @@ public class NamesayerController implements Initializable {
 	}
 	
 	/**
-	 * Helper method to be reused
+	 * Helper method to be reused both when making a new Creation and when making a new Recording
 	 */
 	private void doNewRecording(Creation parentCreation) {
 		Creation selectedCreationAtInstant = parentCreation;
