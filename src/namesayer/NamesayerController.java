@@ -179,7 +179,7 @@ public class NamesayerController implements Initializable {
 			Alert confirmation = new Alert(AlertType.CONFIRMATION);
 			confirmation.setTitle("Play Recordings");
 			confirmation.setHeaderText("Play Multiple Recordings");
-			confirmation.setContentText("You have selected to play multuple recordings\ndo you wish to shuffle the order the selected\nrecordings are played in?");
+			confirmation.setContentText("You have selected to play multiple recordings\ndo you wish to shuffle the order the selected\nrecordings are played in?");
 			ButtonType buttonYes = new ButtonType("Yes");
 			ButtonType buttonNo = new ButtonType("No");
 			confirmation.getButtonTypes().setAll(buttonYes, buttonNo);
@@ -377,7 +377,7 @@ public class NamesayerController implements Initializable {
 				Alert confirmation = new Alert(AlertType.CONFIRMATION);
 				confirmation.setTitle("Play Recordings");
 				confirmation.setHeaderText("Play Multiple Recordings");
-				confirmation.setContentText("You have selected to play multuple recordings\ndo you wish to shuffle the order the selected\nrecordings are played in?");
+				confirmation.setContentText("You have selected to play multiple recordings\ndo you wish to shuffle the order the selected\nrecordings are played in?");
 				ButtonType buttonYes = new ButtonType("Yes");
 				ButtonType buttonNo = new ButtonType("No");
 				confirmation.getButtonTypes().setAll(buttonYes, buttonNo);
